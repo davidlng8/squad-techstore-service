@@ -1,12 +1,18 @@
-import express from "express";
+import express from 'express';
+import http from 'http';
+import bodyParser from 'body-parser';
 
 const app = express();
-const port = process.env.port || 30000;
+const port = process.env.APP_PORT || 3000;
 
-app.get('/', (req, res) => {
+app.use(bodyParser.json());
+
+const server = http.createServer(app);
+
+/*app.get('/', (req, res) => {
     res.send('Ready to start builing out the API Endpoints');
-});  
-  
-app.listen(port, function () {
-    console.log(`Listening on port ${port}!`);
+}); */
+
+server.listen(port, () => {
+    console.log(`HTTP server Listening on port ${port}!`);
 });
