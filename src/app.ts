@@ -1,11 +1,10 @@
 import express from 'express';
 import http from 'http';
-import bodyParser from 'body-parser';
 import {router as items} from './routes/items';
 
 const app = express();
 const port = process.env.APP_PORT || 3000;
-app.use(bodyParser.json());
+app.use(express.json());
 app.use('/items', items);
 
 /** Error handling for unknown routes */

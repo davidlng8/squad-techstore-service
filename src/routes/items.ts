@@ -9,9 +9,9 @@ const router = express.Router();
 });*/
 
 router.get('/', itemsController.getItems);
-router.get('/:id', itemsController.getItem);
+router.get('/:id(\\d+)', itemsController.getItem);
 router.post('/', itemsController.addItem);
-router.put('/:id', itemsController.updateItem);
-router.delete('/:id', itemsController.deleteItem);
+router.put('/:id(\\d+)', itemsController.updateItem);
+router.delete('/:id(\\d+)', itemsController.deleteItem);
 
 export {router};
