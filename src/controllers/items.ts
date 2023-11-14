@@ -140,4 +140,4 @@ const deleteItem = async (req: Request, res: Response) => {
     return res.status(status).json({ message: message});
 }
 
-export default { getItems, getItem, addItem, updateItem, deleteItem}
+export { getItems, getItem, addItem, updateItem, deleteItem }
