@@ -18,12 +18,12 @@ const getItems = async (req: Request, res: Response) => {
     try {
         const result = await dbPool.query('SELECT * FROM items;');
         status = 200;
-        message = '';
+        message = result.rows.length == 0 ? 'No records available.' : '';
         json = result.rows;
     } catch (error) {
         console.error('Error retrieving item:', error);
     }
-    console.log('Respond to request: items');
+    console.log('Respond to request: items', status, message, json);
     return res.status(status).json({ message: message, data : json});
 };
 
