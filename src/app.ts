@@ -3,6 +3,7 @@ import {router as items} from './routes/items';
 
 const app = express();
 const port = process.env.APP_PORT || 3000;
+app.use(express.json());
 app.use('/api-items', items);
 
 /** Error handling for unknown routes */
