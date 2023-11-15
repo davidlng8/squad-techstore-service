@@ -35,7 +35,7 @@ const getItem = async (req: Request, res: Response) => {
     let json = {};
     try {
         const result = await dbPool.query('SELECT * FROM items WHERE id = $1;', [itemId]);
-        status = 400;
+        status = 404;
         message = 'Item not found';
         if (result.rows.length > 0) {
             status = 200;
@@ -83,7 +83,7 @@ const addItem = async (req: Request, res: Response) => {
     return res.status(status).json({ message: message, data: json });
 }
 
-const updateItem = async (req: Request, res: Response) => {
+const updateItembk = async (req: Request, res: Response) => {
     const { error, value } = itemSchema.validate(req.body, { stripUnknown: true });
     const itemId = parseInt(req.params.id, 10);
     let status = 400;
@@ -119,6 +119,13 @@ const updateItem = async (req: Request, res: Response) => {
     return res.status(status).json({ message: message, data: json });
 }
 
+const updateItem = async (req: Request, res: Response) => {
+    let status = 400;
+    let message = 'Invalid update data provided';
+    let json = {};
+    return res.status(status).json({message, data : json})
+}
+
 const deleteItem = async (req: Request, res: Response) => {
     const itemId = parseInt(req.params.id, 10);
     let status = 500;
@@ -134,7 +141,7 @@ const deleteItem = async (req: Request, res: Response) => {
         }
     } catch (error) {
         console.error('Error deleting item:', error);
-        message = error;
+        message = error.message || message;
     }
     console.log('Removing an item: items/{id}');
     return res.status(status).json({ message: message});
