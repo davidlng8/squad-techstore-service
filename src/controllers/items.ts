@@ -66,6 +66,8 @@ const addItem = async (req: Request, res: Response) => {
                     RETURNING *',
                     [name, description, price, img_url]
                 );
+                message = 'Unable to add item in DB.';
+                status = 500;
                 if (result.rows.length > 0) {
                     status = 200;
                     message = 'Successfully added the product.';
@@ -75,7 +77,7 @@ const addItem = async (req: Request, res: Response) => {
             } catch (exception) {
                 console.error('Error adding item:', exception);
                 status = 500;
-                message = exception;
+                message = exception.message;
             }   
         }
     }
@@ -83,7 +85,7 @@ const addItem = async (req: Request, res: Response) => {
     return res.status(status).json({ message: message, data: json });
 }
 
-const updateItembk = async (req: Request, res: Response) => {
+const updateItem = async (req: Request, res: Response) => {
     const { error, value } = itemSchema.validate(req.body, { stripUnknown: true });
     const itemId = parseInt(req.params.id, 10);
     let status = 400;
@@ -95,6 +97,7 @@ const updateItembk = async (req: Request, res: Response) => {
         const { name, description, price, img_url } = value;
         if (name || description || price || img_url) {
             message = 'Item not found in DB for update.';
+            status = 404;
             try {
                 const result = await dbPool.query(
                     'UPDATE items \
@@ -111,19 +114,12 @@ const updateItembk = async (req: Request, res: Response) => {
             } catch (exception) {
                 console.error('Error updating item:', exception);
                 status = 500;
-                message = exception;
+                message = exception.message;
             }   
         }
     }
     console.log(`Editing a new item: items/${itemId}`);
     return res.status(status).json({ message: message, data: json });
-}
-
-const updateItem = async (req: Request, res: Response) => {
-    let status = 400;
-    let message = 'Invalid update data provided';
-    let json = {};
-    return res.status(status).json({message, data : json})
 }
 
 const deleteItem = async (req: Request, res: Response) => {

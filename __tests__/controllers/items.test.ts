@@ -1,4 +1,4 @@
-import { getItems, getItem, deleteItem } from '../../src/controllers/items';
+import { getItems, getItem, deleteItem, updateItem, addItem} from '../../src/controllers/items';
 import express from 'express';
 import request from 'supertest';
 import dbPool from '../../src/db/dbPool';
@@ -9,18 +9,15 @@ jest.mock('../../src/db/dbPool');
 
 // Instantiate app for testing requests
 const app = express();
+app.use(express.json());
 
 // Configure testable routes. You do not need to match the routes exactly as they are in the app
 // As long as the correct controller function is specified for the test route
 app.get('/api/items', getItems);
 app.get('/api/items/:id(\\d+)', getItem);
 app.delete('/api/items/:id(\\d+)', deleteItem);
-
-
-/*router.get('/:id(\\d+)', getItem);
-router.post('/', addItem);
-router.put('/:id(\\d+)', updateItem);
-router.delete('/:id(\\d+)', deleteItem);*/
+app.put('/api/items/:id(\\d+)', updateItem);
+app.post('/api/items', addItem);
 
 let consoleLogMock: any;
 let consoleErrorMock: any;
@@ -220,3 +217,215 @@ describe('DELETE-item-by-id', () => {
             });
     });
 });
+
+// TODO: Mock joi library 'object' and 'validate' functions for PUT and POST unit tests
+describe('PUT-update-item-by-id', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => { });
+        consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => { });
+        querySpy = jest.spyOn(dbPool, 'query');
+    });
+
+    afterEach(() => {
+        querySpy.mockRestore();
+    });
+    it ('No json data passed', (done) => {
+        request(app)
+            .put(`/api/items/1`)
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                done();
+            });
+    });
+
+    it ('JSON data missing required field', (done) => {
+        // TODO: Mock the joi item schema object to remove dependency on current structure for tests
+        // for now, generate an object that doesn't conform to the itemShema
+        const invalidItem = {'invalid' : 'field'};
+        request(app)
+            .put(`/api/items/1`)
+            .send(invalidItem)
+            .set('Content-Type', 'application/json')
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('\"name\" is required');
+                done();
+            });
+    });
+    
+    it ('JSON data value not in correct format', (done) => {
+        // TODO: Mock the joi item schema object to remove dependency on current structure for tests
+        // for now, generate an object that doesn't conform to the itemShema
+        const invalidItem = {'name' : 'test', 'price' : 'invalid format', 'description' : 'desc'};
+        request(app)
+            .put(`/api/items/1`)
+            .send(invalidItem)
+            .set('Content-Type', 'application/json')
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('\"price\" must be a number');
+                done();
+            });
+    });
+
+    it ('Valid data submitted but no DB connection', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        (dbPool.query as jest.Mock).mockRejectedValueOnce(new Error('DB connection error') as never);
+        request(app)
+            .put(`/api/items/1`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('DB connection error');
+                done();
+            });
+    });
+
+    it ('Valid data submitted but item not found', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        const mockResult = { rows: [] as {}[] };
+        (dbPool.query as jest.Mock).mockResolvedValueOnce(mockResult as never);
+        request(app)
+            .put(`/api/items/1`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('Item not found in DB for update.');
+                done();
+            });
+    });
+
+    it ('Valid data submitted and item updated', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        const mockResult = { rows: [itemInfo] };
+        (dbPool.query as jest.Mock).mockResolvedValueOnce(mockResult as never);
+        request(app)
+            .put(`/api/items/1`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual(itemInfo);
+                expect(res.body['message']).toEqual('Successful product update');
+                done();
+            });
+    });
+});
+
+describe('POST-add-item', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => { });
+        consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => { });
+        querySpy = jest.spyOn(dbPool, 'query');
+    });
+
+    afterEach(() => {
+        querySpy.mockRestore();
+    });
+    it ('No json data passed', (done) => {
+        request(app)
+            .post(`/api/items/`)
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                done();
+            });
+    });
+
+    it ('JSON data missing required field', (done) => {
+        const invalidItem = {'invalid' : 'field'};
+        request(app)
+            .post(`/api/items`)
+            .send(invalidItem)
+            .set('Content-Type', 'application/json')
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('\"name\" is required');
+                done();
+            });
+    });
+    
+    it ('JSON data value not in correct format', (done) => {
+        const invalidItem = {'name' : 'test', 'price' : 'invalid format', 'description' : 'desc'};
+        request(app)
+            .post(`/api/items`)
+            .send(invalidItem)
+            .set('Content-Type', 'application/json')
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('\"price\" must be a number');
+                done();
+            });
+    });
+
+    it ('Valid data submitted but no DB connection', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        (dbPool.query as jest.Mock).mockRejectedValueOnce(new Error('DB connection error') as never);
+        request(app)
+            .post(`/api/items/`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('DB connection error');
+                done();
+            });
+    });
+
+    it ('Valid data submitted but item not added', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        const mockResult = { rows: [] as {}[] };
+        (dbPool.query as jest.Mock).mockResolvedValueOnce(mockResult as never);
+        request(app)
+            .post(`/api/items/`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual({});
+                expect(res.body['message']).toEqual('Unable to add item in DB.');
+                done();
+            });
+    });
+
+    it ('Valid data submitted and item added', (done) => {
+        const itemInfo = {'name' : 'test', 'price' : 6.77, 'description' : 'desc'};
+        const mockResult = { rows: [itemInfo] };
+        (dbPool.query as jest.Mock).mockResolvedValueOnce(mockResult as never);
+        request(app)
+            .post(`/api/items`)
+            .send(itemInfo)
+            .set('Content-Type', 'application/json')
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                expect(res.body['data']).toEqual(itemInfo);
+                expect(res.body['message']).toEqual('Successfully added the product.');
+                done();
+            });
+    });
+});
+
