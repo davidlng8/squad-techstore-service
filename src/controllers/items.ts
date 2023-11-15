@@ -23,7 +23,7 @@ const getItems = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error retrieving item:', error);
     }
-    console.log('Respond to request: items', status, message, json);
+    console.log('Respond to request: items');
     return res.status(status).json({ message: message, data : json});
 };
 
