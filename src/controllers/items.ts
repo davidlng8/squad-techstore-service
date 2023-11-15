@@ -86,7 +86,7 @@ const addItem = async (req: Request, res: Response) => {
 }
 
 const updateItem = async (req: Request, res: Response) => {
-    const { error, value } = itemSchema.validate(req.body, { stripUnknown: true });
+    const { error, value } = itemSchema.validate(req.body || {}, { stripUnknown: true });
     const itemId = parseInt(req.params.id, 10);
     let status = 400;
     let message = 'At least one valid field is required for update';
