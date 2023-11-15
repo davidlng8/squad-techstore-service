@@ -1,11 +1,10 @@
 import express from 'express';
-import http from 'http';
 import {router as items} from './routes/items';
 
 const app = express();
 const port = process.env.APP_PORT || 3000;
 app.use(express.json());
-app.use('/items', items);
+app.use('/api-items', items);
 
 /** Error handling for unknown routes */
 app.use((req, res, next) => {
@@ -15,8 +14,8 @@ app.use((req, res, next) => {
     });
 });
 
-const server = http.createServer(app);
-server.listen(port, () => {
+app.listen(port, () => {
     console.log(`HTTP server Listening on port ${port}!`);
 });
 
+export default app;

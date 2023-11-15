@@ -1,11 +1,12 @@
 {
     "compilerOptions" : {
         "module" : "NodeNext",
-        "moduleResolution": "Node",
-        "baseUrl": "src",
-        "outDir": "dist",
+        "moduleResolution": "NodeNext",
+        "baseUrl": "./src",
+        "outDir": "./dist",
         "sourceMap": true,
         "noImplicitAny": true,
+        "esModuleInterop" :true,
     },
     "include": ["src/**/*"],
 }

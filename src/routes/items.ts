@@ -1,5 +1,5 @@
 import express from 'express';
-import itemsController from '../controllers/items';
+import { getItems, getItem, addItem, updateItem, deleteItem } from '../controllers/items';
 
 const router = express.Router();
 /* Executed on every request. Can be used as a logging layer or preprocessng layer*/
@@ -8,10 +8,10 @@ const router = express.Router();
     next();
 });*/
 
-router.get('/', itemsController.getItems);
-router.get('/:id(\\d+)', itemsController.getItem);
-router.post('/', itemsController.addItem);
-router.put('/:id(\\d+)', itemsController.updateItem);
-router.delete('/:id(\\d+)', itemsController.deleteItem);
+router.get('/', getItems);
+router.get('/:id(\\d+)', getItem);
+router.post('/', addItem);
+router.put('/:id(\\d+)', updateItem);
+router.delete('/:id(\\d+)', deleteItem);
 
 export {router};

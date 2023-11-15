@@ -18,7 +18,7 @@ const getItems = async (req: Request, res: Response) => {
     try {
         const result = await dbPool.query('SELECT * FROM items;');
         status = 200;
-        message = '';
+        message = result.rows.length == 0 ? 'No records available.' : '';
         json = result.rows;
     } catch (error) {
         console.error('Error retrieving item:', error);
@@ -35,7 +35,7 @@ const getItem = async (req: Request, res: Response) => {
     let json = {};
     try {
         const result = await dbPool.query('SELECT * FROM items WHERE id = $1;', [itemId]);
-        status = 400;
+        status = 404;
         message = 'Item not found';
         if (result.rows.length > 0) {
             status = 200;
@@ -66,6 +66,8 @@ const addItem = async (req: Request, res: Response) => {
                     RETURNING *',
                     [name, description, price, img_url]
                 );
+                message = 'Unable to add item in DB.';
+                status = 500;
                 if (result.rows.length > 0) {
                     status = 200;
                     message = 'Successfully added the product.';
@@ -75,7 +77,7 @@ const addItem = async (req: Request, res: Response) => {
             } catch (exception) {
                 console.error('Error adding item:', exception);
                 status = 500;
-                message = exception;
+                message = exception.message;
             }   
         }
     }
@@ -84,7 +86,7 @@ const addItem = async (req: Request, res: Response) => {
 }
 
 const updateItem = async (req: Request, res: Response) => {
-    const { error, value } = itemSchema.validate(req.body, { stripUnknown: true });
+    const { error, value } = itemSchema.validate(req.body || {}, { stripUnknown: true });
     const itemId = parseInt(req.params.id, 10);
     let status = 400;
     let message = 'At least one valid field is required for update';
@@ -95,6 +97,7 @@ const updateItem = async (req: Request, res: Response) => {
         const { name, description, price, img_url } = value;
         if (name || description || price || img_url) {
             message = 'Item not found in DB for update.';
+            status = 404;
             try {
                 const result = await dbPool.query(
                     'UPDATE items \
@@ -111,7 +114,7 @@ const updateItem = async (req: Request, res: Response) => {
             } catch (exception) {
                 console.error('Error updating item:', exception);
                 status = 500;
-                message = exception;
+                message = exception.message;
             }   
         }
     }
@@ -125,19 +128,18 @@ const deleteItem = async (req: Request, res: Response) => {
     let message = 'Internal Server Error';
     try {
         const result = await dbPool.query('DELETE FROM items WHERE id = $1;', [itemId]);
-        status = 400;
+        status = 404;
         message = 'item does not exist for deletion';
-        console.log(result);
         if (result.rowCount > 0) {
             status = 200;
             message = 'Deletion success.';
         }
     } catch (error) {
         console.error('Error deleting item:', error);
-        message = error;
+        message = error.message || message;
     }
     console.log('Removing an item: items/{id}');
     return res.status(status).json({ message: message});
 }
 
-export default { getItems, getItem, addItem, updateItem, deleteItem}
+export { getItems, getItem, addItem, updateItem, deleteItem }
