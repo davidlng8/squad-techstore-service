@@ -194,7 +194,7 @@ describe('DELETE-item-by-id', () => {
 
         request(app)
             .delete(`/api/items/15`)
-            .expect(400)
+            .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
                 expect(res.body['message']).toEqual('item does not exist for deletion');

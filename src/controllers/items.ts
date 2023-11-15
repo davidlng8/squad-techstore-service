@@ -128,9 +128,8 @@ const deleteItem = async (req: Request, res: Response) => {
     let message = 'Internal Server Error';
     try {
         const result = await dbPool.query('DELETE FROM items WHERE id = $1;', [itemId]);
-        status = 400;
+        status = 404;
         message = 'item does not exist for deletion';
-        console.log(result);
         if (result.rowCount > 0) {
             status = 200;
             message = 'Deletion success.';
