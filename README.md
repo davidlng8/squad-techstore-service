@@ -15,49 +15,29 @@ Squad-techstore-service requires [Docker](https://www.docker.com/) v20+ to run. 
 
 ```sh
 cd squad-techstore-service
+cp .env.example .env
 docker compose up --build
 ```
 
-For production environments...
+After copying the .env file you may configure it to set your preferred ports and PostgreSQL authentication configurations.
+
+Using any http client of your choice (Postman, cURL etc) you can begin querying against the API service in the following ways
+- GET http://localhost:{PORT}/api-items - Get a list of all items
+- GET http://localhost:{PORT}/api-items/{numeric ID} - Get a specific item by ID if it exists
+- DELETE http://localhost:{PORT}/api-items/{numeric ID} - Get a specific item by ID if it exists
+- PUT http://localhost:{PORT}/api-items/{numeric ID} - Update a specific item if it exists
+   - Include the headers "Content-type" : "application/json"
+   - Inlude a JSON body ```json {'name' : string, 'price' : number, 'description' : string}```
+- POST http://localhost:{PORT}/api-items/ - Add a new item to the service DB
+   - Include the headers "Content-type" : "application/json"
+   - Inlude a JSON body ```json {'name' : string, 'price' : number, 'description' : string}```
+
+### Running the unit tests
+
+Once the App is started, either in the docker container or otherwise, you may run the unit tests using [Jest](https://jestjs.io/) + [Supertest](https://www.npmjs.com/package/supertest)
 
 ```sh
-npm install --production
-NODE_ENV=production node app
-```
-
-
-## Docker
-
-Dillinger is very easy to install and deploy in a Docker container.
-
-By default, the Docker will expose port 8080, so change this within the
-Dockerfile if necessary. When ready, simply use the Dockerfile to
-build the image.
-
-```sh
-cd dillinger
-docker build -t <youruser>/dillinger:${package.json.version} .
-```
-
-This will create the dillinger image and pull in the necessary dependencies.
-Be sure to swap out `${package.json.version}` with the actual
-version of Dillinger.
-
-Once done, run the Docker image and map the port to whatever you wish on
-your host. In this example, we simply map port 8000 of the host to
-port 8080 of the Docker (or whatever port was exposed in the Dockerfile):
-
-```sh
-docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger <youruser>/dillinger:${package.json.version}
-```
-
-> Note: `--capt-add=SYS-ADMIN` is required for PDF rendering.
-
-Verify the deployment by navigating to your server address in
-your preferred browser.
-
-```sh
-127.0.0.1:8000
+npm test
 ```
 
 ## License
