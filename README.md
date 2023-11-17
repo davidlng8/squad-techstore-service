@@ -40,6 +40,24 @@ Once the App is started, either in the docker container or otherwise, you may ru
 npm test
 ```
 
+## Database Structure
+
+If you're running it locally using docker, you don't need to worry about the DB structure. It is defined in the ``` ./db/seed/init.sql``` file. Here's the structure:
+- A single DB schema with the name you set for `APP_DB_POSTGRES_DB` in the .env file
+- A single DB table named `item` in that schema
+- The definition of the `item` table to match the specification provided
+  - An extra field included just based on my preference
+
+```sql
+CREATE TABLE IF NOT EXISTS items (
+  id serial PRIMARY KEY,
+  name VARCHAR (50) NOT NULL,
+  description VARCHAR (150) NOT NULL,
+  price DECIMAL(18, 2) NOT NULL,
+  img_url VARCHAR(150)
+);
+```
+
 ## License
 
 MIT
