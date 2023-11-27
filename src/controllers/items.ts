@@ -7,7 +7,7 @@ const itemSchema = joi.object({
     name: joi.string().required(),
     description: joi.string().required(),
     price: joi.number().required(),
-    img_url: joi.string().uri(),
+    img_url: joi.string().uri().allow('', null),
 });
 
 // getting all Items from DB
